@@ -37,7 +37,6 @@ def fetch_weather_data(city):
     """Fetch current weather data for a given city."""
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
     response = requests.get(url)
-    print(response.json())
     return response.json()
 
 def update_weather_data():

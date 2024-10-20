@@ -155,13 +155,3 @@ The frontend is a React-based application built with Next.js.
 
 - **Port Conflicts**: Ensure no other applications are running on ports 3000 (frontend) and 5000 (backend).
 - **CORS Issues**: The backend uses flask_cors to handle cross-origin requests. Ensure both applications are running on localhost.
-
-## Future Enhancements
-
-- Add support for more cities and different types of weather data.
-- Implement authentication for secure API access.
-- Enable dynamic user preferences for custom dashboard setups.
-
-## License
-
-This project is licensed under the MIT License.

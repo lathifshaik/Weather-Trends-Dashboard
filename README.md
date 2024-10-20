@@ -147,9 +147,10 @@ The frontend is a React-based application built with Next.js.
 
 ## Screenshots
 
-![Weather Dashboard - Summary View](path_to_screenshot_summary)
+![Weather Dashboard - Summary View](snapshoots/1.png)
 
-![Weather Dashboard - Historical Trends](path_to_screenshot_historical)
+![Weather Dashboard - Historical Trends](snapshoots/3.png)
+![Weather Dashboard - Current conditions & alerts](snapshoots/1.png)
 
 ## Troubleshooting
 

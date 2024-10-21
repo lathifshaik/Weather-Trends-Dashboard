@@ -37,7 +37,6 @@ def fetch_weather_data(city):
     """Fetch current weather data for a given city."""
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
     response = requests.get(url)
-    print(response.json())
     return response.json()
 
 def update_weather_data():
@@ -107,11 +106,6 @@ def current_weather():
             }
     return jsonify(weather_data)
 
-def fetch_historical_weather_data(lat, lon, start, end):
-    """Fetch historical weather data for given latitude and longitude."""
-    url = f"https://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API_KEY}&units=metric"
-    response = requests.get(url)
-    return response.json()
 
 
 @app.route('/api/weather/historical', methods=['GET'])

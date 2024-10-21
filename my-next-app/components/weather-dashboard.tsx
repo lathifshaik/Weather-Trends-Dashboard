@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend, ResponsiveContainer } from "recharts"
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { AlertCircle, Settings, Droplets, Wind } from "lucide-react"
+import { AlertCircle, Settings, Droplets, Wind, Sun, Cloud, CloudRain, CloudDrizzle, Snowflake } from "lucide-react"
 import React from "react"
 
 const API_BASE_URL = "http://localhost:5000/api"
@@ -15,10 +15,12 @@ const API_BASE_URL = "http://localhost:5000/api"
 export function WeatherDashboard() {
   const [weatherData, setWeatherData] = useState<Record<string, any>>({})
   const [historicalData, setHistoricalData] = useState<any[]>([])
+  const [forecastData, setForecastData] = useState<any[]>([])
   const [alerts, setAlerts] = useState<any[]>([])
   const [tempUnit, setTempUnit] = useState<"kelvin" | "celsius" | "fahrenheit">("celsius")
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<string>("Bangalore");
 
   const fetchWeatherData = async () => {
     try {
@@ -50,6 +52,21 @@ export function WeatherDashboard() {
     }
   }
 
+  const fetchForecastData = async (city: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/weather/forecast/${city}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
+      setForecastData(data)
+      setError(null)
+    } catch (error) {
+      console.error("Error fetching forecast data:", error)
+      setError("Failed to fetch forecast data. Please try again later.")
+    }
+  }
+
   const fetchAlerts = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/weather/alerts`)
@@ -70,6 +87,7 @@ export function WeatherDashboard() {
       setIsLoading(true);
       await fetchWeatherData()
       await fetchHistoricalData()
+      await fetchForecastData(selectedCity)
       await fetchAlerts()
       setIsLoading(false);
     }
@@ -78,7 +96,7 @@ export function WeatherDashboard() {
     const interval = setInterval(fetchData, 5 * 60 * 1000) // 5 minutes
 
     return () => clearInterval(interval)
-  }, [])
+  }, [selectedCity])
 
   const convertTemp = (temp: number) => {
     switch (tempUnit) {
@@ -220,6 +238,87 @@ export function WeatherDashboard() {
     )
   }
 
+  const renderForecast = () => {
+    const data = forecastData.map(entry => ({
+      ...entry,
+      avg_temp: convertTemp(entry.avg_temp),
+      max_temp: convertTemp(entry.max_temp),
+      min_temp: convertTemp(entry.min_temp),
+      datetime: `${entry.date} ${entry.time}`
+    }));
+
+    const getWeatherIcon = (weather: string) => {
+      if (weather.includes('rain')) return <CloudRain className="w-4 h-4" />;
+      if (weather.includes('drizzle')) return <CloudDrizzle className="w-4 h-4" />;
+      if (weather.includes('snow')) return <Snowflake className="w-4 h-4" />;
+      if (weather.includes('cloud')) return <Cloud className="w-4 h-4" />;
+      return <Sun className="w-4 h-4" />;
+    };
+
+    return (
+      <ChartContainer
+        config={{
+          avg_temp: {
+            label: "Temperature",
+            color: "hsl(var(--chart-1))",
+          },
+          humidity: {
+            label: "Humidity",
+            color: "hsl(var(--chart-2))",
+          },
+          wind_speed: {
+            label: "Wind Speed",
+            color: "hsl(var(--chart-3))",
+          },
+        }}
+        className="h-[400px]"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="datetime" 
+              tickFormatter={(value) => new Date(value).toLocaleString()}
+            />
+            <YAxis 
+              yAxisId="left" 
+              label={{ value: `Temperature (${tempUnit === "kelvin" ? "K" : tempUnit === "fahrenheit" ? "°F" : "°C"})`, angle: -90, position: 'insideLeft' }} 
+            />
+            <YAxis 
+              yAxisId="right" 
+              orientation="right" 
+              label={{ value: 'Humidity (%) / Wind Speed (m/s)', angle: 90, position: 'insideRight' }} 
+            />
+            <ChartTooltip 
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="bg-background p-2 border rounded shadow">
+                      <p className="font-bold">{new Date(label).toLocaleString()}</p>
+                      <p className="flex items-center">
+                        {getWeatherIcon(data.dominant_weather)}
+                        <span className="ml-2">{data.dominant_weather}</span>
+                      </p>
+                      <p>Temperature: {data.avg_temp.toFixed(1)}°</p>
+                      <p>Humidity: {data.humidity}%</p>
+                      <p>Wind Speed: {data.wind_speed} m/s</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Legend />
+            <Line yAxisId="left" type="monotone" dataKey="avg_temp" stroke="var(--color-avg_temp)" name="Temperature" />
+            <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="var(--color-humidity)" name="Humidity" />
+            <Line yAxisId="right" type="monotone" dataKey="wind_speed" stroke="var(--color-wind_speed)" name="Wind Speed" />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartContainer>
+    );
+  };
+
   return (
     <div className="container mx-auto p-4">
       {isLoading ? (
@@ -257,12 +356,26 @@ export function WeatherDashboard() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium mb-1">City</label>
+                <Select value={selectedCity} onValueChange={setSelectedCity} aria-label="Select city">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(weatherData).map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
           <Tabs defaultValue="summary" className="mb-6">
             <TabsList>
               <TabsTrigger value="summary">Daily Summary</TabsTrigger>
               <TabsTrigger value="historical">Historical Trends</TabsTrigger>
+              <TabsTrigger value="forecast">Forecast</TabsTrigger>
             </TabsList>
             <TabsContent value="summary">
               <Card>
@@ -280,6 +393,19 @@ export function WeatherDashboard() {
                   <CardDescription>Temperature, humidity, and wind speed trends for major Indian metros</CardDescription>
                 </CardHeader>
                 <CardContent>{renderHistoricalTrends()}</CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="forecast">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Weather Forecast</CardTitle>
+                  <CardDescription>Detailed weather forecast for {selectedCity}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {renderForecast()}
+                  </div>
+                </CardContent>
               </Card>
             </TabsContent>
           </Tabs>

@@ -163,6 +163,48 @@ def alerts():
 
     return jsonify(alerts)
 
+def fetch_forecast_data(city):
+    """Fetch 5-day weather forecast for a given city."""
+    url = f"https://api.openweathermap.org/data/2.5/forecast?q={city}&appid={API_KEY}&units=metric&cnt=40"
+    response = requests.get(url)
+    return response.json()
+
+@app.route('/api/weather/forecast/<city>', methods=['GET'])
+def forecast_weather(city):
+    """API endpoint to get weather forecast for the next 5 days (3-hour intervals) for a specific city."""
+    data = fetch_forecast_data(city)
+    forecast_data = []
+    if data.get("list"):
+        for forecast in data["list"]:
+            dt = forecast["dt"]
+            # Convert timestamp to human-readable date and time
+            date_time = datetime.utcfromtimestamp(dt)
+            date_str = date_time.strftime("%Y-%m-%d")
+            time_str = date_time.strftime("%H:%M:%S")
+
+            avg_temp = forecast["main"]["temp"]
+            max_temp = forecast["main"]["temp_max"]
+            min_temp = forecast["main"]["temp_min"]
+            humidity = forecast["main"]["humidity"]
+            wind_speed = forecast["wind"]["speed"]
+            dominant_weather = forecast["weather"][0]["description"]
+
+            forecast_data.append({
+                "city": city,
+                "date": date_str,
+                "time": time_str,
+                "avg_temp": avg_temp,
+                "max_temp": max_temp,
+                "min_temp": min_temp,
+                "humidity": humidity,
+                "wind_speed": wind_speed,
+                "dominant_weather": dominant_weather
+            })
+
+    return jsonify(forecast_data)
+
+
+
 if __name__ == '__main__':
     with app.app_context():  # Initialize the database
         db.create_all()

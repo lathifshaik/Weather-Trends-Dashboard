@@ -23,6 +23,14 @@ This repository consists of two main parts:
 
 The backend is a Flask server that provides weather data through API endpoints.
 
+### Installation Steps
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/lathifshaik/Weather-Trends-Dashboard.git
+   cd Weather-Trends-Dashboard
+   ```
+
 ### Backend Setup Steps
 
 1. **Navigate to the backend folder:**
@@ -49,6 +57,41 @@ The backend is a Flask server that provides weather data through API endpoints.
 
    The Flask server will start and listen for requests at http://localhost:5000/api.
 
+### Frontend Setup Steps
+
+1. Open a new terminal and navigate to the my-next-app directory:
+
+   ```bash
+   cd my-next-app
+   ```
+
+2. Install frontend dependencies:
+
+   Run the following command to install the required packages listed in package.json:
+
+   ```bash
+   npm install
+   ```
+
+3. Build the frontend application:
+
+   Once the dependencies are installed, build the frontend:
+
+   ```bash
+   npm run build
+   ```
+
+4. Start the development server:
+
+   Start the Next.js development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Access the frontend dashboard:
+
+   Open your browser and go to http://localhost:3000. Ensure no other applications are running on port 3000 to avoid conflicts.
 ### Key Backend Features
 
 - **Imports**: The backend uses several core packages including Flask, flask_cors (for handling cross-origin requests from the frontend), and requests for API calls.
@@ -90,41 +133,6 @@ The backend includes unit tests to ensure the correctness of the API endpoints.
 
 The frontend is a React-based application built with Next.js.
 
-### Frontend Setup Steps
-
-1. Open a new terminal and navigate to the my-next-app directory:
-
-   ```bash
-   cd my-next-app
-   ```
-
-2. Install frontend dependencies:
-
-   Run the following command to install the required packages listed in package.json:
-
-   ```bash
-   npm install
-   ```
-
-3. Build the frontend application:
-
-   Once the dependencies are installed, build the frontend:
-
-   ```bash
-   npm run build
-   ```
-
-4. Start the development server:
-
-   Start the Next.js development server:
-
-   ```bash
-   npm run dev
-   ```
-
-5. Access the frontend dashboard:
-
-   Open your browser and go to http://localhost:3000. Ensure no other applications are running on port 3000 to avoid conflicts.
 
 ## Application Features
 

@@ -21,6 +21,7 @@ export function WeatherDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCity, setSelectedCity] = useState<string>("Bangalore");
+  const [isForecastLoading, setIsForecastLoading] = useState(false);
 
   const fetchWeatherData = async () => {
     try {
@@ -53,6 +54,7 @@ export function WeatherDashboard() {
   }
 
   const fetchForecastData = async (city: string) => {
+    setIsForecastLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/weather/forecast/${city}`)
       if (!response.ok) {
@@ -63,7 +65,9 @@ export function WeatherDashboard() {
       setError(null)
     } catch (error) {
       console.error("Error fetching forecast data:", error)
-      setError("Failed to fetch forecast data. Please try again later.")
+      setError(`Failed to fetch forecast data for ${city}. Please try again later.`)
+    } finally {
+      setIsForecastLoading(false);
     }
   }
 
@@ -87,7 +91,6 @@ export function WeatherDashboard() {
       setIsLoading(true);
       await fetchWeatherData()
       await fetchHistoricalData()
-      await fetchForecastData(selectedCity)
       await fetchAlerts()
       setIsLoading(false);
     }
@@ -96,6 +99,10 @@ export function WeatherDashboard() {
     const interval = setInterval(fetchData, 5 * 60 * 1000) // 5 minutes
 
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    fetchForecastData(selectedCity);
   }, [selectedCity])
 
   const convertTemp = (temp: number) => {
@@ -239,6 +246,16 @@ export function WeatherDashboard() {
   }
 
   const renderForecast = () => {
+    if (isForecastLoading) {
+      return <div className="flex justify-center items-center h-64">
+        <p className="text-lg">Loading forecast data...</p>
+      </div>;
+    }
+
+    if (forecastData.length === 0) {
+      return <div className="text-center">No forecast data available.</div>;
+    }
+
     const data = forecastData.map(entry => ({
       ...entry,
       avg_temp: convertTemp(entry.avg_temp),
@@ -345,7 +362,11 @@ export function WeatherDashboard() {
             <CardContent className="flex gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-1">Temperature Unit</label>
-                <Select value={tempUnit} onValueChange={(value: "kelvin" | "celsius" | "fahrenheit") => setTempUnit(value)} aria-label="Select temperature unit">
+                <Select value={tempUnit} onValueChange={(value: "kelvin" | "celsius" | "fahrenheit") => {
+                    setTempUnit(value);
+                    // Force a re-render of the forecast chart
+                    setForecastData([...forecastData]);
+                  }} aria-label="Select temperature unit">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -358,7 +379,10 @@ export function WeatherDashboard() {
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium mb-1">City</label>
-                <Select value={selectedCity} onValueChange={setSelectedCity} aria-label="Select city">
+                <Select value={selectedCity} onValueChange={(value) => {
+                    setSelectedCity(value);
+                    fetchForecastData(value);
+                  }} aria-label="Select city">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
